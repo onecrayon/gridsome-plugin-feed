@@ -123,7 +123,7 @@ module.exports.defaultOptions = () => ({
 	filterNodes: (node) => true,
 	nodeToFeedItem: (node) => ({
 		title: node.title,
-		date: node.fields.date,
+		date: node.date || node.fields.date,
 		content: node.content
 	})
 })
