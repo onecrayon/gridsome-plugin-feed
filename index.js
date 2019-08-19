@@ -59,26 +59,34 @@ module.exports = function (api, options) {
 		}
 		const feed = new Feed(feedOptions)
 
-		let nodes = []
+		let feedItems = []
 		for (const contentType of options.contentTypes) {
 			const { collection } = store.getContentType(contentType)
 			if (!collection.data || !collection.data.length) continue
-			const items = collection.data.filter(options.filterNodes).map(node => options.nodeToFeedItem(node))
-			nodes.push(...items)
+			// We're mapping to feed items here instead of after sorting in case the data needs
+			// to be massaged into the proper format for a feed item (e.g. if the node has a date
+			// in a field named something other than `date`). This is slower because we process
+			// items that may not get included in the feed, but it's build time, so... ¯\_(ツ)_/¯
+			const items = collection.data.filter(options.filterNodes).map(node => {
+				const feedItem = options.nodeToFeedItem(node)
+				feedItem.id = urlWithBase(pathPrefix + node.path, siteUrl)
+				feedItem.link = feedItem.id
+				return feedItem
+			})
+			feedItems.push(...items)
 		}
-		nodes.sort((a, b) => {
+		feedItems.sort((a, b) => {
 			const aDate = moment(a.date)
 			const bDate = moment(b.date)
 			if (aDate.isSame(bDate)) return 0
 			return aDate.isBefore(bDate) ? 1 : -1
 		})
-		if (options.maxItems && nodes.length > options.maxItems) {
-			nodes = nodes.slice(0, options.maxItems)
+		if (options.maxItems && feedItems.length > options.maxItems) {
+			feedItems = feedItems.slice(0, options.maxItems)
 		}
 
-		for (const item of nodes) {
-			item.id = urlWithBase(pathPrefix + item.path, siteUrl)
-			item.link = item.id
+		// Process URLs and ensure they are site-relative for any fields that might contain HTML
+		for (const item of feedItems) {
 			if (options.htmlFields && options.htmlFields.length) {
 				for (const field of options.htmlFields) {
 					if (!item[field]) continue
