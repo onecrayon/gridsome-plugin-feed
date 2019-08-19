@@ -1,6 +1,6 @@
 {
   "name": "gridsome-plugin-feed",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate RSS/Atom/JSON feeds from generated Gridsome content.",
   "main": "index.js",
   "license": "ISC",
