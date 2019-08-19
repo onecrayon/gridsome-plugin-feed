@@ -63,7 +63,7 @@ module.exports = function (api, options) {
 		for (const contentType of options.contentTypes) {
 			const { collection } = store.getContentType(contentType)
 			if (!collection.data || !collection.data.length) continue
-			const items = collection.data.filter(options.filterNodes)
+			const items = collection.data.filter(options.filterNodes).map(node => options.nodeToFeedItem(node))
 			nodes.push(...items)
 		}
 		nodes.sort((a, b) => {
@@ -75,10 +75,9 @@ module.exports = function (api, options) {
 		if (options.maxItems && nodes.length > options.maxItems) {
 			nodes = nodes.slice(0, options.maxItems)
 		}
-		
-		for (const node of nodes) {
-			const item = options.nodeToFeedItem(node)
-			item.id = urlWithBase(pathPrefix + node.path, siteUrl)
+
+		for (const item of nodes) {
+			item.id = urlWithBase(pathPrefix + item.path, siteUrl)
 			item.link = item.id
 			if (options.htmlFields && options.htmlFields.length) {
 				for (const field of options.htmlFields) {
