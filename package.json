@@ -11,8 +11,8 @@
     "gridsome-plugin"
   ],
   "dependencies": {
-    "feed": "^2.0.4",
-    "fs-extra": "^8.0.1",
+    "feed": "^4.0.0",
+    "fs-extra": "^8.1.0",
     "micromatch": "^4.0.2",
     "moment": "^2.24.0"
   }
