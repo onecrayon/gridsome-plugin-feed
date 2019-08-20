@@ -44,14 +44,14 @@ module.exports = {
         // To disable this functionality, set to `null`.
         htmlFields: ['description', 'content'],
         // Optional: a method that accepts a node and returns true (include) or false (exclude)
-        // Example: only past-dated nodes: `filterNodes: (node) => node.fields.date <= new Date()`
+        // Example: only past-dated nodes: `filterNodes: (node) => node.date <= new Date()`
         filterNodes: (node) => true,
         // Optional: a method that accepts a node and returns an object for `Feed.addItem()`
         // See https://www.npmjs.com/package/feed#example for available properties
         // NOTE: `date` field MUST be a Javascript `Date` object
         nodeToFeedItem: (node) => ({
           title: node.title,
-          date: node.fields.date,
+          date: node.date || node.fields.date,
           content: node.content
         })
       }
