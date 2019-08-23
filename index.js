@@ -4,15 +4,18 @@ const fs = require('fs-extra')
 const Feed = require('feed').Feed
 const moment = require('moment')
 
-function urlWithBase (path, base) {
+function urlWithBase (path, base, enforceTrailingSlashes) {
+	if (enforceTrailingSlashes && !path.endsWith('/') && !/\.[a-z]{1,4}$/i.test(path)) {
+		path = path + '/'
+	}
 	return new url.URL(path, base).href
 }
 
-function convertToSiteUrls (html, baseUrl) {
+function convertToSiteUrls (html, baseUrl, enforceTrailingSlashes) {
 	// Currently playing it conservative and only modifying things that are explicitly relative URLs
 	const relativeRefs = /(href|src)=("|')((?=\.{1,2}\/|\/).+?)\2/gi
 	return html.replace(relativeRefs, (_, attribute, quote, relUrl) => {
-		return [attribute, '=', quote, urlWithBase(relUrl, baseUrl), quote].join('')
+		return [attribute, '=', quote, urlWithBase(relUrl, baseUrl, enforceTrailingSlashes), quote].join('')
 	})
 }
 
@@ -36,7 +39,7 @@ module.exports = function (api, options) {
 		const store = api.store
 		const pathPrefix = config.pathPrefix !== '/' ? config.pathPrefix : ''
 		const siteUrl = config.siteUrl
-		const siteHref = urlWithBase(pathPrefix, siteUrl)
+		const siteHref = urlWithBase(pathPrefix, siteUrl, options.enforceTrailingSlashes)
 		const feedOptions = {
 			generator: 'Gridsome Feed Plugin',
 			id: siteHref,
@@ -69,7 +72,7 @@ module.exports = function (api, options) {
 			// items that may not get included in the feed, but it's build time, so... ¯\_(ツ)_/¯
 			const items = collection.data.filter(options.filterNodes).map(node => {
 				const feedItem = options.nodeToFeedItem(node)
-				feedItem.id = urlWithBase(pathPrefix + node.path, siteUrl)
+				feedItem.id = urlWithBase(pathPrefix + node.path, siteUrl, options.enforceTrailingSlashes)
 				feedItem.link = feedItem.id
 				return feedItem
 			})
@@ -90,7 +93,7 @@ module.exports = function (api, options) {
 			if (options.htmlFields && options.htmlFields.length) {
 				for (const field of options.htmlFields) {
 					if (!item[field]) continue
-					item[field] = convertToSiteUrls(item[field], item.link)
+					item[field] = convertToSiteUrls(item[field], item.link, options.enforceTrailingSlashes)
 				}
 			}
 			feed.addItem(item)
@@ -128,8 +131,9 @@ module.exports.defaultOptions = () => ({
 	},
 	maxItems: 25,
 	htmlFields: ['description', 'content'],
-	filterNodes: (node) => true,
-	nodeToFeedItem: (node) => ({
+	enforceTrailingSlashes: false,
+	filterNodes: node => true,
+	nodeToFeedItem: node => ({
 		title: node.title,
 		date: node.date || node.fields.date,
 		content: node.content

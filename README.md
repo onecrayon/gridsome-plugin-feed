@@ -43,6 +43,8 @@ module.exports = {
         // URLs in HTML (ensures that URLs are full `http` URLs rather than site-relative).
         // To disable this functionality, set to `null`.
         htmlFields: ['description', 'content'],
+        // Optional: if you wish to enforce trailing slashes for site URLs
+        enforceTrailingSlashes: false,
         // Optional: a method that accepts a node and returns true (include) or false (exclude)
         // Example: only past-dated nodes: `filterNodes: (node) => node.date <= new Date()`
         filterNodes: (node) => true,
