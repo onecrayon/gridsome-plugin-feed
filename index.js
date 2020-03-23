@@ -64,7 +64,7 @@ module.exports = function (api, options) {
 
 		let feedItems = []
 		for (const contentType of options.contentTypes) {
-			const { collection } = store.getContentType(contentType)
+			const { collection } = store.getCollection(contentType)
 			if (!collection.data || !collection.data.length) continue
 			// We're mapping to feed items here instead of after sorting in case the data needs
 			// to be massaged into the proper format for a feed item (e.g. if the node has a date
@@ -101,15 +101,15 @@ module.exports = function (api, options) {
 
 		if (rssOutput) {
 			console.log(`Generate RSS feed at ${rssOutput}`)
-			fs.outputFile(path.join(config.outDir, rssOutput), feed.rss2())
+			fs.outputFile(path.join(config.outputDir, rssOutput), feed.rss2())
 		}
 		if (atomOutput) {
 			console.log(`Generate Atom feed at ${atomOutput}`)
-			fs.outputFile(path.join(config.outDir, atomOutput), feed.atom1())
+			fs.outputFile(path.join(config.outputDir, atomOutput), feed.atom1())
 		}
 		if (jsonOutput) {
 			console.log(`Generate JSON feed at ${jsonOutput}`)
-			fs.outputFile(path.join(config.outDir, jsonOutput), feed.json1())
+			fs.outputFile(path.join(config.outputDir, jsonOutput), feed.json1())
 		}
 	})
 }
