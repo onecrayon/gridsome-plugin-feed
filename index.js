@@ -28,7 +28,9 @@ function ensureExtension (path, extension) {
 }
 
 module.exports = function (api, options) {
-	api.afterBuild(({ config }) => {
+	api.afterBuild((afterBuildContext) => {
+		const { config } = afterBuildContext;
+
 		if (!config.siteUrl) {
 			throw new Error('Feed plugin is missing required global siteUrl config.')
 		}
@@ -63,6 +65,7 @@ module.exports = function (api, options) {
 		const feed = new Feed(feedOptions)
 
 		let feedItems = []
+		const feedItemContext = { ...afterBuildContext, api };
 		for (const contentType of options.contentTypes) {
 			const { collection } = store.getContentType(contentType)
 			if (!collection.data || !collection.data.length) continue
@@ -70,12 +73,14 @@ module.exports = function (api, options) {
 			// to be massaged into the proper format for a feed item (e.g. if the node has a date
 			// in a field named something other than `date`). This is slower because we process
 			// items that may not get included in the feed, but it's build time, so... ¯\_(ツ)_/¯
-			const items = collection.data.filter(options.filterNodes).map(node => {
-				const feedItem = options.nodeToFeedItem(node)
-				feedItem.id = urlWithBase(pathPrefix + node.path, siteUrl, options.enforceTrailingSlashes)
-				feedItem.link = feedItem.id
-				return feedItem
-			})
+			const items = collection.data
+				.filter(node => options.filterNodes(node, feedItemContext))
+				.map(node => {
+					const feedItem = options.nodeToFeedItem(node, feedItemContext);
+					feedItem.id = urlWithBase(pathPrefix + node.path, siteUrl, options.enforceTrailingSlashes);
+					feedItem.link = feedItem.id;
+					return feedItem;
+				});
 			feedItems.push(...items)
 		}
 		feedItems.sort((a, b) => {
